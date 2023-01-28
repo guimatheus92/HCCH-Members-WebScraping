@@ -36,7 +36,7 @@ def get_countries_data():
             # Get the source link of the data
             DS_SOURCELINK = url            
             # Append the data to the records list
-            records.append([DT_RUN, NM_COUNTRY, CD_ISOALPHA2, DS_COUNTRYLINK, NM_WEBSITELANGUAGE, DS_SOURCELINK])
+            records.append([DT_RUN, NM_COUNTRY, DS_COUNTRYLINK, NM_WEBSITELANGUAGE, DS_SOURCELINK])
 
     # Create a dataframe from the records list
     df = pd.DataFrame(records, columns=["DT_RUN", "NM_COUNTRY", "DS_COUNTRYLINK", "NM_WEBSITELANGUAGE", "DS_SOURCELINK"])
@@ -46,7 +46,7 @@ def get_countries_data():
 df = get_countries_data()
 
 # Export the dataframe to a CSV file
-#df.to_csv('countries_data.csv', index=False)
+#df.to_csv('countries_data.csv', index=False, encoding="utf-8")
 
 # Print the dataframe
 print(df)
