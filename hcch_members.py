@@ -1,37 +1,52 @@
+from datetime import datetime
 from bs4 import BeautifulSoup
 import requests
 import pandas as pd
-from datetime import datetime
 
-# Base URL to be used for the links
+# Define the base URL and the list of URLs to be scraped
 base_url = "https://www.hcch.net"
-
-# URLs to scrape
 urls = ["https://www.hcch.net/pt/states/hcch-members/", "https://www.hcch.net/en/states/hcch-members/"]
 
-def get_countries_data(url):
-    # Get the HTML content of the page
-    html = requests.get(url).content
-    # Create a BeautifulSoup object to parse the HTML
-    soup = BeautifulSoup(html, 'html.parser')
-    # Find the div containing the countries list
-    filter_soup = soup.find("div", class_="row states-listing")
-    # Find all the anchor tags within the div
-    children = filter_soup.findChildren("a" , recursive=True)
-    # Create an empty list to store the scraped data
+# Define a function to get the data from the URLs
+def get_countries_data():
+    # Initialize an empty list to store the records
     records = []
-    # Loop through each anchor tag
-    for child in children:
-        # Append a dictionary containing the scraped data to the list
-        records.append({'date': datetime.today().strftime('%Y-%m-%d'),'country': child.text.strip(), 'link': base_url + child['href'], 'language': url.split("/")[-3]})
-    # Create a dataframe from the list of dictionaries
-    df = pd.DataFrame.from_records(records)
-    # Reorder the columns
-    df = df[['date','country','link','language']]
-    # Return the dataframe
+    # Get the current date and time and format it as a string
+    DT_RUN = datetime.now().strftime("%Y-%m-%d")
+    # Loop through each URL in the list
+    for url in urls:
+        # Get the HTML content from the URL
+        html = requests.get(url).content
+        # Create a BeautifulSoup object to parse the HTML
+        soup = BeautifulSoup(html, 'html.parser')
+        # Find the div element with class "row states-listing"
+        filter_soup = soup.find("div", class_="row states-listing")
+        # Find all child elements within the div element
+        children = filter_soup.findChildren("a" , recursive=True)        
+        # Loop through each child element
+        for child in children:
+            # Get the country name
+            NM_COUNTRY = child.text.strip()            
+            # Get the link to the country's page
+            DS_COUNTRYLINK = base_url + child['href']
+            # Get the ISO alpha-2 code for the country
+            CD_ISOALPHA2 = DS_COUNTRYLINK[-2:]
+            # Get the language of the website
+            NM_WEBSITELANGUAGE = url.split("/")[-4]
+            # Get the source link of the data
+            DS_SOURCELINK = url            
+            # Append the data to the records list
+            records.append([DT_RUN, NM_COUNTRY, CD_ISOALPHA2, DS_COUNTRYLINK, NM_WEBSITELANGUAGE, DS_SOURCELINK])
+
+    # Create a dataframe from the records list
+    df = pd.DataFrame(records, columns=["DT_RUN", "NM_COUNTRY", "DS_COUNTRYLINK", "NM_WEBSITELANGUAGE", "DS_SOURCELINK"])
     return df
 
-# Concatenate the dataframes returned by the function for each url
-df = pd.concat([get_countries_data(url) for url in urls])
+# Call the function to get the data
+df = get_countries_data()
 
+# Export the dataframe to a CSV file
+#df.to_csv('countries_data.csv', index=False)
+
+# Print the dataframe
 print(df)
